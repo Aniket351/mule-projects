@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	
+	<sub-flow name="log-request-received" doc:id="b440f85a-caf4-445b-8160-3790a1a0918a" >
+		<set-variable value="#[if (attributes.headers.'x-correlation-start-time' != null) attributes.headers.'x-correlation-start-time' as DateTime else now()]" doc:name="Set Variable - requestStartTime" doc:id="8b4deb4c-bd22-49d4-9c4e-0aa4afc5d6ea" variableName="requestStartTime" />
+		<async doc:name="Async" doc:id="db46e5d2-e807-4fbf-a6b2-5aa8c55d646c" >
+			<set-variable value='#["Request received"]' doc:name="Set requestState - Request Received" doc:id="d554321b-77fe-4643-b720-b0758604268c" variableName="requestState" />
+			<flow-ref doc:name="format-and-log-message" doc:id="8e37a309-2c1d-4991-9e19-ceed83a93bc6" name="format-and-log-message" />
+		</async>
+	</sub-flow>
+	<sub-flow name="log-response-returned" doc:id="c7550af4-e723-49c3-835c-dbba959ce307" >
+		<async doc:name="Async" doc:id="c8a48141-c95b-4ac4-b9d7-c82bb88b4f81" >
+			<set-variable value="Response returned" doc:name="Set requestState - Response returned" doc:id="2b9441fe-7eab-4447-a5f4-daaeacea1ae9" variableName="requestState" />
+			<flow-ref doc:name="format-and-log-message" doc:id="d0d33a90-2224-4e8c-b941-7bb6da2fb782" name="format-and-log-message" />
+		</async>
+	</sub-flow>
+	<sub-flow name="log-resource-flow-entry" doc:id="e573d4f9-f70c-40f4-8845-db22308dc7d4" >
+		<async doc:name="Async" doc:id="8d963bbb-a850-4961-8fa2-31fbd5bcf15e" >
+			<set-variable value="Resource flow entry" doc:name="Set requestState - Resource flow entry" doc:id="389266ad-6b5b-47ba-b485-a1015429c7df" variableName="requestState" />
+			<flow-ref doc:name="format-and-log-message" doc:id="79b80e48-0147-45c8-8707-8704d117cc35" name="format-and-log-message" />
+		</async>
+	</sub-flow>
+	<sub-flow name="log-resource-flow-complete" doc:id="6b118154-4efa-43d1-8191-201ad1594822" >
+		<async doc:name="Async" doc:id="436ec420-9513-442b-923e-0186801b3b2f" >
+			<set-variable value="Resource flow complete" doc:name="Set requestState - Resource flow complete" doc:id="92c8a735-9f7c-4645-bffd-dc505f3a1616" variableName="requestState" />
+			<flow-ref doc:name="format-and-log-message" doc:id="169c0fd1-fbc2-486e-a782-04fa74ce3a23" name="format-and-log-message" />
+		</async>
+	</sub-flow>
+	<sub-flow name="log-before-outbound-request" doc:id="5205bd9f-f0d7-4392-9e8c-67fafb9a0ff4" >
+		<async doc:name="Async" doc:id="516a6985-4d89-49b0-9e9e-9424b5a8136f" >
+			<set-variable value="Outbound request" doc:name="Set requestState - Performing outbound request" doc:id="30083803-6093-48b9-b465-c903cdc88446" variableName="requestState" />
+			<flow-ref doc:name="format-and-log-message" doc:id="e487d727-c5ce-493b-a26f-c360c94109b5" name="format-and-log-message" />
+		</async>
+	</sub-flow>
+	<sub-flow name="log-after-outbound-request" doc:id="a781e5fe-c88e-4e31-a99b-6296d587d31f" >
+		<async doc:name="Async" doc:id="a2bc5b7e-17ff-4068-968a-d9a6d67be80f" >
+			<set-variable value="Response received" doc:name="Set requestState - Outbound request complete" doc:id="242f1d6a-d23c-40a6-bba7-f029ae492a56" variableName="requestState" />
+			<flow-ref doc:name="format-and-log-message" doc:id="293d0e1a-5390-4b6e-a2e9-cae8bf2eaefa" name="format-and-log-message" />
+		</async>
+	</sub-flow>
+	<sub-flow name="format-and-log-message" doc:id="fb4d4884-c39d-4ec6-b39d-5bd29feaa803" >
+		<ee:transform doc:name="Format Log Message" doc:id="e080f721-a6e3-4c04-b4ee-44b315b146eb" >
+			<ee:message >
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable resource="dwl/formatLog.dwl" variableName="logMessage" />
+			</ee:variables>
+		</ee:transform>
+		<logger doc:name="Write log message" doc:id="1741445b-3fae-4518-8cff-d5fc7d5e6df3" message="#[vars.logMessage]" level="INFO" />
+		<flow-ref doc:name="remove-variables" doc:id="2d11ed44-ccc8-470c-a997-df94f694912c" name="remove-variables"/>
+	</sub-flow>
+	<sub-flow name="format-and-log-error-message" doc:id="92cd9615-79a4-4b2e-a92d-b8bb42babf44" >
+		<ee:transform doc:name="Format Error Log Message" doc:id="8df865cd-3edd-421a-bfa8-017091245151">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable resource="dwl/formatLog.dwl" variableName="logMessage" />
+			
+</ee:variables>
+		</ee:transform>
+		<logger level="ERROR" doc:name="Write Error Log Message" doc:id="f847d32f-5781-4111-8ef7-8d8372342acf" message="#[vars.logMessage]" />
+		<logger level="ERROR" doc:name="Write Prepared Error Message" doc:id="0289da28-ca69-4081-9627-087b3be6f77a" message="#[payload]" />
+		<flow-ref doc:name="remove-variables" doc:id="64bff4c1-738d-4231-b7f5-ec7d4297f823" name="remove-variables"/>
+	</sub-flow>
+	<sub-flow name="remove-variables" doc:id="9ad691bb-d2ac-473e-b808-dcb32f1ba474" >
+		<remove-variable doc:name="Remove Variable - requestState" doc:id="29f73f81-cbad-4c55-910e-a7f1d2667ebc" variableName="requestState" />
+		<remove-variable doc:name="Remove Variable - additionalLogInfo" doc:id="6ccb1a1d-e320-4f34-b8f0-5a904a4b8039" variableName="additionalLogInfo" />
+		<remove-variable doc:name="Remove Variable - logMessage" doc:id="13fafaa0-8918-4727-857c-480f416ee353" variableName="logMessage" />
+	</sub-flow>
+</mule>
